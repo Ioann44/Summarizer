@@ -26,15 +26,16 @@ assert (
 
 
 def get_grade_fast(sentence: Counter, total_counter: Counter, total_words) -> float:
-    """Works in O(n), low effect of graded sentence length"""
+    """Works in O(n), low correlation with similar sentences length"""
     grade = 0
     for word_key, word_count in sentence.items():
-        grade += word_count * (total_counter[word_key] - word_count) / total_words
+        grade += word_count * (total_counter[word_key] - word_count)
+    grade /= sum(sentence.values())
     return grade
 
 
 def get_grade_slow(sentence: Counter, counters: List[Counter]) -> float:
-    """Works in O(n^2), hight effect of graded sentence length"""
+    """Works in O(n^2), hight correlation with similar sentences length"""
     grade = 0
     sentence_len = sum(sentence.values())
     for other_sentence in counters:
