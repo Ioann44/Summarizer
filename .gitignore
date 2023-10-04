@@ -1,3 +1,4 @@
 python/
 __pycache__
-*.txt
+other/
+lenta-ru-news.csv
