@@ -2,3 +2,4 @@ python/
 __pycache__
 other/
 lenta-ru-news.csv
+*.bin

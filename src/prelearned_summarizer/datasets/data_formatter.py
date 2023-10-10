@@ -5,7 +5,7 @@ import random
 from tqdm import tqdm
 
 location = os.path.dirname(__file__)
-sys.path.append(location + "/../")
+sys.path.append(location + "/../" * 2)
 
 import tools
 
