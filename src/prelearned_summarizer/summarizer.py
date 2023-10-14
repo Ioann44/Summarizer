@@ -9,30 +9,6 @@ sys.path.append(location + "/../")
 import tools
 
 
-def __get_list_of_counters_and_decoder(sentences: List[str]) -> Tuple[List[Counter[int]], List[str]]:
-    suppresses_sentences: List[List[int]] = []
-    word_max_id = 0
-    suppressor = dict()
-    for sentence in sentences:
-        lowered_sentence = sentence.lower()
-        suppresses_sentences.append([])
-        for word in tools.get_words_from_sentence(lowered_sentence):
-            lemma = tools.lemmatize(word)
-            if lemma not in suppressor:
-                suppressor[lemma] = word_max_id
-                word_max_id += 1
-            suppresses_sentences[-1].append(suppressor[lemma])
-
-    decoder = [key for key, _ in sorted(list(suppressor.items()), key=lambda pair: pair[1])]
-    return [Counter(num_list) for num_list in suppresses_sentences], decoder
-
-
-assert __get_list_of_counters_and_decoder(["Раз два 'три'", "раз, дВа, три!"]) == (
-    [Counter({0: 1, 1: 1, 2: 1})] * 2,
-    ["раз", "два", "три"],
-), "Get_array_of_counters_and_decoder not working properly"
-
-
 def get_grade_fast(sentence: Counter, total_counter: Counter, total_words) -> float:
     """Works in O(n), low correlation with similar sentences length"""
     grade = 0
@@ -57,12 +33,11 @@ def get_grade_slow(sentence: Counter, counters: List[Counter]) -> float:
 
 def summarize(text: str):
     sentences = tools.split_to_sentences(text)
-    counters, decoder = __get_list_of_counters_and_decoder(sentences)
+    lemmas_matrix = tools.get_lemmatized_matrix(text)
+    counters = [Counter(sentence) for sentence in lemmas_matrix]
     total_counter = Counter()
-    total_words = 0
     for counter in counters:
         total_counter += counter
-        total_words += sum(counter.values())
     # choice one of grade functions
     index_with_grade = [
         (
@@ -74,7 +49,7 @@ def summarize(text: str):
     ]
     index_with_grade.sort(key=lambda i_grade: i_grade[1])
     # lower sentence len in 2 times
-    summarized_index_with_grade = index_with_grade[: len(sentences) // 2]
+    summarized_index_with_grade = index_with_grade[: len(lemmas_matrix) // 2]
     summarized_index_with_grade.sort()
     return " ".join(sentences[i] for i, _ in summarized_index_with_grade)
 
