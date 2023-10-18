@@ -1,9 +1,10 @@
 import os
 import sys
-from gensim.models import Word2Vec
-from gensim.models.callbacks import CallbackAny2Vec
 from typing import List
 from collections import Counter
+
+from gensim.models import Word2Vec
+from gensim.models.callbacks import CallbackAny2Vec
 
 location = os.path.dirname(__file__)
 sys.path.append(location + "/../")

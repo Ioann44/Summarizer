@@ -1,5 +1,6 @@
 from typing import List
 import re
+
 import nltk
 
 nltk.download("punkt")
@@ -31,7 +32,8 @@ def get_words_from_sentence(sentence: str) -> List[str]:
 
 
 def get_lemmatized_matrix(text: str) -> List[List[str]]:
-    return [
-        [lemmatize(word) for word in get_words_from_sentence(sentence)]
-        for sentence in split_to_sentences(text.lower())
-    ]
+    return [get_lemmatized_matrix_from_sentence(sentence) for sentence in split_to_sentences(text.lower())]
+
+
+def get_lemmatized_matrix_from_sentence(sentence: str) -> List[str]:
+    return [lemmatize(word) for word in get_words_from_sentence(sentence)]
