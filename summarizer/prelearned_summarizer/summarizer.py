@@ -1,7 +1,7 @@
+import math
 import os
 import sys
-from typing import List, Tuple
-from collections import Counter
+from typing import Any, Callable, List, Tuple
 
 from gensim.models import Word2Vec
 
@@ -21,6 +21,8 @@ def get_word_vector(word: str) -> List[float]:
 
 
 def make_avg_vector(vectors: List[List[float]]) -> List[float]:
+    if len(vectors) == 0:
+        return []
     total_vector = [0.0] * len(vectors[0])
     for vc in vectors:
         for i, vci in enumerate(vc):
@@ -31,6 +33,8 @@ def make_avg_vector(vectors: List[List[float]]) -> List[float]:
 
 
 def get_cos_distance(vc_a: List[float], vc_b: List[float]) -> float:
+    if not all((vc_a, vc_b)):
+        return 0
     return (
         sum(ai * bi for ai, bi in zip(vc_a, vc_b))
         / sum(ai**2 for ai in vc_a) ** 0.5
@@ -55,9 +59,9 @@ def get_grade_slow(sentence: List[float], all_sentences: List[List[float]]) -> f
     return grade
 
 
-def summarize(text: str):
-    sentences = tools.split_to_sentences(text)
-    lemmas_matrix = tools.get_lemmatized_matrix(text)
+def __summarize(
+    lemmas_matrix: List[List[str]], compression_multiplier: float, grade_method_is_slow: bool
+) -> List[int]:
     vectorized_sentences = [
         make_avg_vector([get_word_vector(word) for word in sentence]) for sentence in lemmas_matrix
     ]
@@ -65,26 +69,45 @@ def summarize(text: str):
     for vc in vectorized_sentences:
         for i, vci in enumerate(vc):
             total_vector[i] += vci
-    # choice one of grade functions
     index_with_grade = [
         (
             i,
-            # get_grade_fast(counter, total_counter, total_words)
-            get_grade_slow(sentence_vc, vectorized_sentences),
+            get_grade_slow(sentence_vc, vectorized_sentences) if grade_method_is_slow else 1,
         )
         for i, sentence_vc in enumerate(vectorized_sentences)
     ]
     index_with_grade.sort(key=lambda i_grade: i_grade[1])
-    # lower sentence len in 2 times
-    summarized_index_with_grade = index_with_grade[: len(lemmas_matrix) // 2]
+    summarized_index_with_grade = index_with_grade[: math.ceil(len(lemmas_matrix) / compression_multiplier)]
     summarized_index_with_grade.sort()
-    return " ".join(sentences[i] for i, _ in summarized_index_with_grade)
+    return [index for index, grade in summarized_index_with_grade]
+
+
+def summarize_extended(
+    text: str, compression_multiplier: float = 3, is_slow_preferred: bool = True
+) -> Tuple[str, int, int]:
+    """Cover with additional info about summarizing
+
+    Args:
+        text (str): Source text
+        compression_multiplier (float, optional): How many times sentences num will be decreased. Defaults to 3.
+        is_slow_preferred (bool, optional): Which summarizing method preffered. Defaults to True.
+
+    Returns:
+        Tuple[str, int, int]: Summarized text, initial sentences num, compressed sentences num
+    """
+    sentences = tools.split_to_sentences(text)
+    lemmas_matrix = [tools.get_lemmatized_matrix_from_sentence(sentence) for sentence in sentences]
+
+    # add force using fast method if there are too many sentences
+    summarized_indexes = __summarize(lemmas_matrix, compression_multiplier, is_slow_preferred)
+
+    return " ".join(sentences[i] for i in summarized_indexes), len(sentences), len(summarized_indexes)
 
 
 if __name__ == "__main__":
     with open(location + "/../../other/input.txt", "r", encoding="utf-8") as file:
         input_text = file.read()
-    res = summarize(input_text)
+    res = summarize_extended(input_text)[0]
     with open(location + "/../../other/output.txt", "a", encoding="utf-8") as file:
         file.write("\n" * 2)
         file.write(res)
