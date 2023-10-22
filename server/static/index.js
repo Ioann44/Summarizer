@@ -42,9 +42,14 @@ function showTemporaryNotification(message, duration = 3000) {
 	}, duration + 1000);
 }
 
+function showModal() {
+	modalWindow.style.display = "block";
+}
+
 window.onload = () => {
 	const notificationContainer = document.getElementById("notificationContainer");
 	const resultTextArea = document.getElementById("compressed-text");
+	modalWindow = document.getElementById("modal");
 
 	// Update compression multipltiplier listener
 	const rangeSliderValueField = document.getElementById("range-value");
