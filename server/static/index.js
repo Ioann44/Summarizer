@@ -30,38 +30,50 @@ function fetch_template(url, respIsJson, init, callback, err_message = null) {
 }
 
 function showTemporaryNotification(message, duration = 3000) {
-	const notification = document.createElement('div');
+	const notification = document.createElement("div");
 	notification.textContent = message;
-	notification.classList.add('notification');
+	notification.classList.add("notification");
 
 	notificationContainer.appendChild(notification);
-	notification.style.animation = 'slide-down 0.5s ease-in-out forwards, fade-out 0.5s ease-in-out 2s forwards';
+	notification.style.animation = `slide-down 0.5s ease-in-out forwards, fade-out 0.5s ease-in-out ${duration}ms forwards`;
 
 	setTimeout(() => {
 		notification.remove()
-	}, duration);
+	}, duration + 1000);
 }
 
 window.onload = () => {
-	const notificationContainer = document.getElementById('notificationContainer');
+	const notificationContainer = document.getElementById("notificationContainer");
+	const resultTextArea = document.getElementById("compressed-text");
 
+	// Update compression multipltiplier listener
+	const rangeSliderValueField = document.getElementById("range-value");
+	const rangeSlider = document.getElementById("range");
+	rangeSlider.addEventListener("input", function () {
+		rangeSliderValueField.textContent = rangeSlider.value;
+	});
+
+	// Summarize request listener
 	document.getElementsByTagName("form")[0].addEventListener("submit", event => {
 		event.preventDefault();
 
-		const [input_text, preffered_method] = [
+		const [input_text, preffered_method, compression_mul] = [
 			...document.getElementsByClassName("form-input")
 		].map(element => element.value)
 
 		fetch_template("/api/summarize", true, {
 			method: "POST",
 			headers: {
-				'Content-Type': 'application/json'
+				"Content-Type": "application/json"
 			},
-			body: JSON.stringify({ text: input_text, method: preffered_method })
+			body: JSON.stringify({ text: input_text, method: preffered_method, compression_mul: compression_mul })
 		}, data => {
+			resultTextArea.value = data.text;
+			resultTextArea.style.height = "0";
+			resultTextArea.style.height = resultTextArea.scrollHeight + 3 + "px";
 			if (data.info_msg) {
 				showTemporaryNotification(data.info_msg, 6000);
 			}
 		})
-	})
+	});
 }
