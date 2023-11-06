@@ -1,6 +1,6 @@
 from typing import List
 from collections import Counter
-import src.tools as tools
+import tools
 
 
 def __get_list_of_counters(sentences: List[str]) -> List[Counter[int]]:

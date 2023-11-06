@@ -3,3 +3,4 @@ __pycache__
 other/
 lenta-ru-news.csv
 *.bin
+*.txt
