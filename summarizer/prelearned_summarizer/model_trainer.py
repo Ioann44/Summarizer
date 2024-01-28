@@ -12,6 +12,18 @@ sys.path.append(location + "/../")
 import tools
 
 
+class MyDataset:
+    path = "/datasets/"
+
+    def __init__(self, filename):
+        self.path += filename
+
+    def __iter__(self):
+        with open(location + self.path, "r", encoding="utf-8") as input_file:
+            for line in input_file:
+                yield line.split()
+
+
 class TrainingProgressCallback(CallbackAny2Vec):
     def __init__(self):
         self.prev_loss_total = 0
@@ -24,35 +36,31 @@ class TrainingProgressCallback(CallbackAny2Vec):
         self.epoch += 1
 
 
-def create_model():
-    with open(location + "/datasets/formatted-dataset.txt", "r", encoding="utf-8") as input_file:
-        sentences = [line.split() for line in input_file.readlines()]
-
+def create_model(name, dataset: MyDataset):
     model = Word2Vec(
-        sentences=sentences,
-        vector_size=100,
-        window=5,
-        min_count=1,
+        sentences=dataset,
+        vector_size=300,
+        window=7,
+        min_count=5, # default 5
         sg=0,  # 0 для CBOW, 1 для Skip-gram
         epochs=100,
         compute_loss=True,
         callbacks=[TrainingProgressCallback()],
     )
-    model.save(location + "/models/cbow.bin")
+    model.save(location + "/models/" + name)
     return model
 
 
-def uptrain(name, epochs, new_name="default"):
+def uptrain(name, epochs, dataset: MyDataset, new_name="default"):
     model = Word2Vec.load(location + "/models/" + name)
-    with open(location + "/datasets/formatted-dataset.txt", "r", encoding="utf-8") as input_file:
-        sentences = [line.split() for line in input_file.readlines()]
-    model.build_vocab(sentences)
+    model.build_vocab(dataset)
     model.train(
-        sentences,
+        dataset,
         total_examples=model.corpus_count,
         epochs=epochs,
         compute_loss=True,
         callbacks=[TrainingProgressCallback()],
+        # set workers in case using laptop
     )
     if new_name == "default":
         model.save(location + "/models/" + name[:-4] + "_upt.bin")
@@ -63,14 +71,20 @@ def uptrain(name, epochs, new_name="default"):
 
 # word_vectors = model.wv
 # vector = word_vectors["пример"]
-
+# 23 57
+# 00 05
+# recommend 80 epochs in case 8 mins per epoch on google colab
 
 if __name__ == "__main__":
-    # create_model()
-    # uptrain("cbow_large.bin", 60, "cbow_large.bin")
+    MODEL_NAME = "cbow_v300.bin"
+    DATASET_NAME = "trimmed.txt"
 
-    model = Word2Vec.load(location + "/models/cbow_large.bin")
-    # model = Word2Vec.load(location + "/models/cbow_100v_5w_100e.bin")
+    dataset = MyDataset(DATASET_NAME)
+
+    create_model(MODEL_NAME, dataset)
+    # uptrain(NAME, 60, dataset=DATASET)
+
+    model = Word2Vec.load(location + "/models/" + MODEL_NAME)
 
     def print_similar(word):
         if word in model.wv:
