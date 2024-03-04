@@ -47,14 +47,14 @@ def create_model(name, dataset: MyDataset | None = None):
         # sentences=dataset,
         corpus_file=location + "/datasets/trimmed.txt",
         vector_size=300,
-        window=7,
-        alpha=0.1,  # default 0.025
+        window=5,
+        alpha=0.025,  # default 0.025
         min_count=10,  # default 5
         sg=0,  # 0 для CBOW, 1 для Skip-gram
         epochs=100,
         compute_loss=True,
         callbacks=[TrainingProgressCallback()],
-        workers=5,
+        workers=6,
     )
     model.save(location + "/models/" + name)
     return model
@@ -84,12 +84,8 @@ def uptrain(name, epochs, dataset: MyDataset, new_name="default"):
 # recommend 80 epochs in case 8 mins per epoch on google colab
 
 if __name__ == "__main__":
-    MODEL_NAME = "cbow_v300.bin"
-    DATASET_NAME = "trimmed.txt"
+    MODEL_NAME = "cbow_v300_slow.bin"
 
-    # dataset = MyDataset(DATASET_NAME)
-
-    # create_model(MODEL_NAME, dataset)
     # create_model(MODEL_NAME)
 
     # uptrain(NAME, 60, dataset=DATASET)
