@@ -12,7 +12,7 @@ sys.path.append(location + "/../")
 
 import tools
 
-model = Word2Vec.load(location + "/models/cbow_large.bin")
+model = Word2Vec.load(location + "/models/cbow_v300_slow.bin")
 
 
 def get_word_vector(word: str) -> List[float]:
@@ -62,7 +62,7 @@ def get_grade_slow(sentence: List[float], all_sentences: Iterable[List[float]]) 
 
 
 def get_beside_sentences_window(
-    i: int, all_sentences: List[List[float]], window_size=100
+    i: int, all_sentences: List[List[float]], window_size=25
 ) -> Iterable[List[float]]:
     """Makes check window smaller to avoid O(n^2) and move to O(n) with large multiplier (window_size)
 
@@ -71,18 +71,10 @@ def get_beside_sentences_window(
         all_sentences (_type_): Array of others vectorized sentences
     """
     right = min(len(all_sentences), i + window_size // 2)
-    left = max(0, right - 100)
-    right = left + 100
-    vc_sent_generator = itertools.islice(all_sentences, left, right)
+    left = max(0, right - window_size)
+    right = min(len(all_sentences), left + window_size)
+    vc_sent_generator = (all_sentences[j] for j in range(left, right) if j != i)
     return vc_sent_generator
-
-
-def get_rid_of_small_sentences(indexes: Iterable[int], sentences: List[Sized], min_len: int = 4) -> Set[int]:
-    set_of_i = set()
-    for i in indexes:
-        if len(sentences[i]) >= min_len:
-            set_of_i.add(i)
-    return set_of_i
 
 
 def __summarize(
@@ -101,24 +93,20 @@ def __summarize(
     index_with_grade = [
         (
             i,
-            get_grade_slow(sentence_vc, get_beside_sentences_window(i, vectorized_sentences))
-            if grade_method_is_slow
-            else 1,
+            (
+                get_grade_slow(sentence_vc, get_beside_sentences_window(i, vectorized_sentences))
+                if grade_method_is_slow
+                else 1
+            ),
         )
         # for i, sentence_vc in enumerate(vectorized_sentences)
         for i, sentence_vc in tqdm(
             enumerate(vectorized_sentences), "Grading...", len(vectorized_sentences), ncols=100
         )
     ]
-    index_with_grade.sort(key=lambda i_grade: i_grade[1])
+    index_with_grade.sort(key=lambda i_grade: -i_grade[1])
 
-    """better to rewrite next block to correlate with len of symbols in sentence instead of words,
-    also move it to the top to exclude small sentences from grading (number may cause a lot of harm I think)"""
-    inds_of_long_sentences = get_rid_of_small_sentences((i for i, _ in index_with_grade), lemmas_matrix)  # type: ignore
-    # index of long enough sentences, plus grade
-    iofes_with_grade = [(i, grade) for i, grade in index_with_grade if i in inds_of_long_sentences]
-
-    summarized_index_with_grade = iofes_with_grade[: math.ceil(len(lemmas_matrix) / compression_multiplier)]
+    summarized_index_with_grade = index_with_grade[: math.ceil(len(lemmas_matrix) / compression_multiplier)]
     summarized_index_with_grade.sort()
     return [index for index, grade in summarized_index_with_grade]
 
