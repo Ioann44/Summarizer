@@ -46,6 +46,26 @@ function showModal() {
 	modalWindow.style.display = "block";
 }
 
+function handleFileDrop(event) {
+	event.preventDefault();
+	const file = event.dataTransfer.files[0];
+	readFileContents(file);
+}
+
+function handleFileInputChange(event) {
+	const file = event.target.files[0];
+	readFileContents(file);
+}
+
+function readFileContents(file) {
+	const reader = new FileReader();
+	reader.onload = function (event) {
+		const text = event.target.result;
+		document.getElementById('source_text').value = text;
+	};
+	reader.readAsText(file, 'UTF-8');
+}
+
 window.onload = () => {
 	const notificationContainer = document.getElementById("notificationContainer");
 	const resultTextArea = document.getElementById("compressed-text");
@@ -66,6 +86,11 @@ window.onload = () => {
 			...document.getElementsByClassName("form-input")
 		].map(element => element.value)
 
+		if (input_text.length > 5242880) {
+			showTemporaryNotification("Текст превышает максимальный размер в 5 миллионов символов (10 МБ в кодировке UTF-8)", 6000);
+			return;
+		}
+
 		fetch_template("/api/summarize", true, {
 			method: "POST",
 			headers: {
@@ -80,5 +105,10 @@ window.onload = () => {
 				showTemporaryNotification(data.info_msg, 6000);
 			}
 		})
+	});
+
+	// File loader listener
+	document.getElementsByClassName('file-click-area')[0].addEventListener('click', function () {
+		document.getElementById('file-input').click();
 	});
 }

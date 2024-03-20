@@ -9,6 +9,7 @@ from src.common.env import env
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # acceptable for single server application
+app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 
 app.register_blueprint(index)
 app.register_blueprint(index_api)
