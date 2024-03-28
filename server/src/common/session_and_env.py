@@ -9,7 +9,7 @@ def __init():
     from sqlalchemy.orm import sessionmaker
 
     env = dotenv_values(pathlib.Path(__name__).parent.parent.joinpath(".env").resolve())
-    db_url = env["DATABASE_URL"]
+    db_url = f"postgresql://user:{env['DATABASE_PASSWORD']}@{env['DATABASE_HOST']}:5432/database"
     assert db_url is not None, "DATABASE_URL is not defined"
 
     engine = create_engine(db_url)

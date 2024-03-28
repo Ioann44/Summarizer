@@ -1,7 +1,12 @@
+settings.json
+
 python/
 __pycache__
+models/
 other/
+volumes/
+
 lenta-ru-news.csv
 *.bin
 *.txt
-models/
+.env
