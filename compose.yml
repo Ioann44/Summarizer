@@ -8,8 +8,8 @@ services:
       POSTGRES_USER: user
       POSTGRES_DB: database
     restart: unless-stopped
-    ports:
-      - 5432:5432
+    # ports:
+    # - 5432:5432
     volumes:
       - ./volumes/database:/var/lib/postgresql/data
     healthcheck:
@@ -47,12 +47,14 @@ services:
     container_name: app
     build: .
     image: summarizer-app
+    environment:
+      TQDM_DISABLE: $TQDM_DISABLE
     restart: unless-stopped
     volumes:
       - ./server:/app/server
       - ./summarizer:/app/summarizer
       - ./.env:/app/.env
-      # - ./logs.txt:/app/logs.txt
+      - ./volumes/logs:/app/logs/
     ports:
       - $PORT:3000
     depends_on:
@@ -60,4 +62,4 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    command: "python -u server/app.py > logs.txt"
+    command: sh -c "python -u server/app.py >> ./logs/logs.txt 2>&1"
