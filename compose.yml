@@ -8,8 +8,8 @@ services:
       POSTGRES_USER: user
       POSTGRES_DB: database
     restart: unless-stopped
-    # ports:
-    # - 5432:5432
+    ports:
+      - 5432:5432
     volumes:
       - ./volumes/database:/var/lib/postgresql/data
     healthcheck:
@@ -34,6 +34,9 @@ services:
       MINIO_ROOT_USER: user
       MINIO_ROOT_PASSWORD: $MINIO_PASSWORD
     restart: unless-stopped
+    ports:
+      - 9000:9000
+      - 9001:9001
     volumes:
       - ./volumes/minio:/data
     healthcheck:
