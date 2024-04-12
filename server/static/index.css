@@ -3,7 +3,7 @@
 }
 
 body {
-	background-color: #d3d3d3;
+	background-color: white;
 	color: black;
 }
 
@@ -16,6 +16,7 @@ header {
 
 #ref-button {
 	display: block;
+	background-color: white;
 	border: 1px solid black;
 	border-radius: 50%;
 	margin-left: 10px;
@@ -31,9 +32,8 @@ header {
 .block-container {
 	display: block;
 	padding: 10px 20px;
-	background-color: #d1d8d1;
+	background-color: #e5eeec;
 	border-radius: 10px;
-	border: 2px solid black;
 	margin: 5px;
 	margin-bottom: 20px;
 }
@@ -67,6 +67,7 @@ header {
 
 textarea {
 	resize: vertical;
+	border-radius: 5px;
 }
 
 .full-range-container {
