@@ -77,9 +77,7 @@ def get_beside_sentences_window(
     return vc_sent_generator
 
 
-def __summarize(
-    lemmas_matrix: List[List[str]], compression_multiplier: float, grade_method_is_slow: bool
-) -> List[int]:
+def __summarize(lemmas_matrix: List[List[str]]) -> List[int]:
     vectorized_sentences = [
         # make_avg_vector([get_word_vector(word) for word in sentence]) for sentence in lemmas_matrix
         make_avg_vector([get_word_vector(word) for word in sentence])
@@ -93,36 +91,26 @@ def __summarize(
     index_with_grade = [
         (
             i,
-            (
-                get_grade_slow(sentence_vc, get_beside_sentences_window(i, vectorized_sentences))
-                if grade_method_is_slow
-                else 1
-            ),
+            (get_grade_slow(sentence_vc, get_beside_sentences_window(i, vectorized_sentences))),
         )
-        # for i, sentence_vc in enumerate(vectorized_sentences)
         for i, sentence_vc in tqdm(
             enumerate(vectorized_sentences), "Grading...", len(vectorized_sentences), ncols=100
         )
     ]
     index_with_grade.sort(key=lambda i_grade: -i_grade[1])
 
-    summarized_index_with_grade = index_with_grade[: math.ceil(len(lemmas_matrix) / compression_multiplier)]
-    summarized_index_with_grade.sort()
-    return [index for index, grade in summarized_index_with_grade]
+    summarized_indexes = [index for index, _ in index_with_grade]
+    return summarized_indexes
 
 
-def summarize_extended(
-    text: str, compression_multiplier: float = 3, is_slow_preferred: bool = True
-) -> Tuple[str, int, int]:
+def summarize_extended(text: str) -> List[Tuple[str, int]]:
     """Cover with additional info about summarizing
 
     Args:
         text (str): Source text
-        compression_multiplier (float, optional): How many times sentences num will be decreased. Defaults to 3.
-        is_slow_preferred (bool, optional): Which summarizing method preffered. Defaults to True.
 
     Returns:
-        Tuple[str, int, int]: Summarized text, initial sentences num, compressed sentences num
+        List[Tuple[str, int]]: [(sentence, index of sentence in source text), ...]
     """
     sentences = tools.split_to_sentences(text)
     # lemmas_matrix = [tools.get_lemmatized_matrix_from_sentence(sentence) for sentence in sentences]
@@ -131,18 +119,5 @@ def summarize_extended(
         for sentence in tqdm(sentences, "Lemmatizing...", ncols=100)
     ]
 
-    # add force using fast method if there are too many sentences
-    summarized_indexes = __summarize(lemmas_matrix, compression_multiplier, is_slow_preferred)
-
-    return " ".join(sentences[i] for i in summarized_indexes), len(sentences), len(summarized_indexes)
-
-
-if __name__ == "__main__":
-    with open(location + "/../../other/philosofy1m.txt", "r", encoding="utf-8") as file:
-        # with open(location + "/../../other/input.txt", "r", encoding="utf-8") as file:
-        input_text = file.read()
-    res, initial_num, result_num = summarize_extended(input_text, 50)
-    print(f"Compressed from {initial_num} to {result_num} sentences")
-    with open(location + "/../../other/output.txt", "a", encoding="utf-8") as file:
-        file.write("\n" * 2)
-        file.write(res)
+    summarized_indexes = __summarize(lemmas_matrix)
+    return [(sentences[i], i) for i in summarized_indexes]
