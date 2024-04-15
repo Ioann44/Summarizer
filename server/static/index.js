@@ -66,6 +66,61 @@ function readFileContents(file) {
 	reader.readAsText(file, 'UTF-8');
 }
 
+// MARK: History
+
+function toggleHistory() {
+    var historyList = document.getElementById("history-list");
+    var button = document.querySelector('.toggle-history');
+
+    if (historyList.style.display === 'none' || historyList.style.maxHeight === '0px') {
+        historyList.style.display = 'block';
+        var maxHeight = historyList.scrollHeight + "px";
+        historyList.style.maxHeight = maxHeight;
+        button.style.backgroundColor = '#e0e0e0';
+    } else {
+        historyList.style.maxHeight = '0';
+        button.style.backgroundColor = '#f0f0f0';
+        setTimeout(function() {
+            historyList.style.display = 'none';
+        }, 300);
+    }
+}
+
+function addToHistory(dateTime, text, link) {
+    var historyList = document.getElementById("history-list");
+
+    var historyItem = document.createElement("div");
+    historyItem.classList.add("history-item");
+
+    var info = document.createElement("div");
+    info.classList.add("history-item-info");
+    
+    var dateElement = document.createElement("div");
+    dateElement.classList.add("history-item-date");
+    dateElement.textContent = dateTime.toLocaleString();
+    
+    var textElement = document.createElement("div");
+    textElement.classList.add("history-item-text");
+	textElement.textContent = text;
+
+    info.appendChild(dateElement);
+    info.appendChild(textElement);
+
+    var download = document.createElement("div");
+    download.classList.add("history-item-download");
+    var downloadLink = document.createElement("a");
+    downloadLink.href = link;
+    downloadLink.textContent = "Скачать";
+    download.appendChild(downloadLink);
+
+    historyItem.appendChild(info);
+    historyItem.appendChild(download);
+
+    historyList.appendChild(historyItem);
+}
+
+// MARK: Onload
+
 window.onload = () => {
 	const notificationContainer = document.getElementById("notificationContainer");
 	const resultTextArea = document.getElementById("compressed-text");
@@ -111,4 +166,9 @@ window.onload = () => {
 	document.getElementsByClassName('file-click-area')[0].addEventListener('click', function () {
 		document.getElementById('file-input').click();
 	});
+
+	// History adding example
+	var currentDate = new Date();
+	var sampleText = "Некоторый текст для истории.";
+	addToHistory(currentDate, sampleText, "123");
 }
