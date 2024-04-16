@@ -21,9 +21,9 @@ def get_word_vector(word: str) -> List[float]:
 
 
 def make_avg_vector(vectors: List[List[float]]) -> List[float]:
+    total_vector = [0.0] * model.vector_size
     if len(vectors) == 0:
-        return []
-    total_vector = [0.0] * len(vectors[0])
+        return total_vector
     for vc in vectors:
         for i, vci in enumerate(vc):
             total_vector[i] += vci
@@ -81,7 +81,7 @@ def __summarize(lemmas_matrix: List[List[str]]) -> List[int]:
         make_avg_vector([get_word_vector(word) for word in sentence])
         for sentence in tqdm(lemmas_matrix, "Vectorizing...", ncols=100)
     ]
-    total_vector = [0.0] * len(vectorized_sentences[0])
+    total_vector = [0.0] * model.vector_size
     for vc in vectorized_sentences:
         for i, vci in enumerate(vc):
             total_vector[i] += vci
