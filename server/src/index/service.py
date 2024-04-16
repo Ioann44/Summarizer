@@ -15,7 +15,7 @@ from src.index import db_service, mn_service
 from src.index.entities import Text
 
 
-def summarize(text: str, method_is_vec: bool, compression_mul: float) -> Tuple[str, str]:
+def summarize(text: str, method_is_vec: bool, compression_mul: float) -> Tuple[str, str, str]:
     hash = sha256(text.encode()).hexdigest()
     print(f"Received hash {hash}. ", end="")
 
@@ -36,7 +36,11 @@ def summarize(text: str, method_is_vec: bool, compression_mul: float) -> Tuple[s
 
     # is vec
     if method_is_vec:
-        if text_obj.vectFile is None:
+        if str(text_obj.vectFile) == "Processing":
+            print(f"Request of hash {hash} denied because it is processing now")
+            return "", "Этот текст обрабатывается прямо сейчас, повторите запрос через пару минут", hash
+        elif text_obj.vectFile is None:
+            db_service.update({"hash": text_obj.hash, "vectFile": "Processing"})
             sumr_list = summarize_prelearned(mn_service.get_text(str(text_obj.sourceFile)))
             sumr_uuid = uuid4().hex
             mn_service.save_pickle(sumr_list, sumr_uuid)
@@ -47,7 +51,11 @@ def summarize(text: str, method_is_vec: bool, compression_mul: float) -> Tuple[s
         print(f"Used vectFile for {hash}")
     # is count
     else:
-        if text_obj.primFile is None:
+        if str(text_obj.primFile) == "Processing":
+            print(f"Request of hash {hash} denied because it is processing now")
+            return "", "Этот текст обрабатывается прямо сейчас, повторите запрос через пару минут", hash
+        elif text_obj.primFile is None:
+            db_service.update({"hash": text_obj.hash, "primFile": "Processing"})
             sumr_list = summarize_primitive(mn_service.get_text(str(text_obj.sourceFile)))
             sumr_uuid = uuid4().hex
             mn_service.save_pickle(sumr_list, sumr_uuid)
@@ -57,7 +65,7 @@ def summarize(text: str, method_is_vec: bool, compression_mul: float) -> Tuple[s
         result = get_result(str(text_obj.primFile or sumr_uuid), compression_mul)  # type: ignore
         print(f"Used primFile for {hash}")
 
-    return result
+    return *result, hash
 
 
 def get_text_obj(hash) -> dict[str, Optional[str]]:

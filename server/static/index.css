@@ -27,7 +27,7 @@ header {
 }
 
 #ref-button:hover {
-	background-color: lightgrey;
+	background-color: #e0e0e0;
 }
 
 .block-container {
@@ -51,6 +51,15 @@ header {
 	padding: 7px 0;
 	border: 1px solid #ccc;
 	border-radius: 5px;
+}
+
+#submit-button:hover {
+	background-color: #e0e0e0;
+}
+
+#submit-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .form-input {

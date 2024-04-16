@@ -1,18 +1,28 @@
+const FILE_STORAGE_URL = "http://localhost:9000/files/";
+
 /**
  * Fetch cover for suppressing code amount
  * @param {string} url
  * @param {boolean} respIsJson
  * @param {content} init {method: string, headers: {Content-Type: string}, body: string}
  * @param {function} callback 
- * @param {string} err_message replaces error message if specified
+ * @param {string} err_message replaces error message if specified, "don't show" silents any error message
+ * @param {boolean} is_summ_req if true, produces more notifications and blocks/unblocks summarize button 
 */
-function fetch_template(url, respIsJson, init, callback, err_message = null) {
+function fetch_template(url, respIsJson, init, callback, err_message = null, is_summ_req = false) {
+	if (is_summ_req) {
+		document.getElementById("submit-button").disabled = true;
+		showTemporaryNotification("Запрос отправлен, обработка может занять несколько минут", 4500);
+	}
 	fetch(url, init).then(
 		response => {
 			if (!response.ok) {
 				return response.text().then(errorMessage => {
 					throw new Error(errorMessage);
 				});
+			}
+			if (is_summ_req) {
+				document.getElementById("submit-button").disabled = false;
 			}
 			if (respIsJson) {
 				return response.json();
@@ -23,8 +33,11 @@ function fetch_template(url, respIsJson, init, callback, err_message = null) {
 	).then(callback).catch(errorMessage => {
 		if (err_message === null) {
 			showTemporaryNotification(errorMessage);
-		} else {
+		} else if (err_message !== "don't show") {
 			showTemporaryNotification(err_message);
+		}
+		if (is_summ_req) {
+			document.getElementById("submit-button").disabled = false;
 		}
 	})
 }
@@ -66,57 +79,91 @@ function readFileContents(file) {
 	reader.readAsText(file, 'UTF-8');
 }
 
+// MARK: Local storage
+
+function saveOrUpdateRecord(hash) {
+	fetch_template("/api/history/" + hash, true, { method: "POST" }, jsonData => {
+		let records = JSON.parse(localStorage.getItem('records')) || {};
+		const curDate = new Date();
+		records[hash] = {
+			date: curDate.toLocaleString(),
+			preview: jsonData.preview,
+			fileSuff: jsonData.sourceFile,
+			timeNum: curDate.getTime()
+		};
+		localStorage.setItem('records', JSON.stringify(records));
+		updateHistory();
+	}, "don't show");
+}
+
+function getAllRecords() {
+	let records = Object.entries(JSON.parse(localStorage.getItem('records')) || {});
+	records.sort((a, b) => b[1].timeNum - a[1].timeNum);
+	const mapped = records.map(data => data[1]);
+	return mapped;
+}
+
 // MARK: History
 
 function toggleHistory() {
-    var historyList = document.getElementById("history-list");
-    var button = document.querySelector('.toggle-history');
+	var historyList = document.getElementById("history-list");
+	var button = document.querySelector('.toggle-history');
 
-    if (historyList.style.display === 'none' || historyList.style.maxHeight === '0px') {
-        historyList.style.display = 'block';
-        var maxHeight = historyList.scrollHeight + "px";
-        historyList.style.maxHeight = maxHeight;
-        button.style.backgroundColor = '#e0e0e0';
-    } else {
-        historyList.style.maxHeight = '0';
-        button.style.backgroundColor = '#f0f0f0';
-        setTimeout(function() {
-            historyList.style.display = 'none';
-        }, 300);
-    }
+	if (historyList.style.display === 'none' || historyList.style.maxHeight === '0px') {
+		historyList.style.display = 'block';
+		var maxHeight = historyList.scrollHeight + "px";
+		historyList.style.maxHeight = maxHeight;
+		button.style.backgroundColor = '#e0e0e0';
+	} else {
+		historyList.style.maxHeight = '0';
+		button.style.backgroundColor = '#f0f0f0';
+		setTimeout(function () {
+			historyList.style.display = 'none';
+		}, 300);
+	}
 }
 
 function addToHistory(dateTime, text, link) {
-    var historyList = document.getElementById("history-list");
+	var historyList = document.getElementById("history-list");
 
-    var historyItem = document.createElement("div");
-    historyItem.classList.add("history-item");
+	var historyItem = document.createElement("div");
+	historyItem.classList.add("history-item");
 
-    var info = document.createElement("div");
-    info.classList.add("history-item-info");
-    
-    var dateElement = document.createElement("div");
-    dateElement.classList.add("history-item-date");
-    dateElement.textContent = dateTime.toLocaleString();
-    
-    var textElement = document.createElement("div");
-    textElement.classList.add("history-item-text");
+	var info = document.createElement("div");
+	info.classList.add("history-item-info");
+
+	var dateElement = document.createElement("div");
+	dateElement.classList.add("history-item-date");
+	dateElement.textContent = dateTime;
+
+	var textElement = document.createElement("div");
+	textElement.classList.add("history-item-text");
 	textElement.textContent = text;
 
-    info.appendChild(dateElement);
-    info.appendChild(textElement);
+	info.appendChild(dateElement);
+	info.appendChild(textElement);
 
-    var download = document.createElement("div");
-    download.classList.add("history-item-download");
-    var downloadLink = document.createElement("a");
-    downloadLink.href = link;
-    downloadLink.textContent = "Скачать";
-    download.appendChild(downloadLink);
+	var download = document.createElement("div");
+	download.classList.add("history-item-download");
+	var downloadLink = document.createElement("a");
+	downloadLink.href = link;
+	downloadLink.textContent = "Скачать";
+	download.appendChild(downloadLink);
 
-    historyItem.appendChild(info);
-    historyItem.appendChild(download);
+	historyItem.appendChild(info);
+	historyItem.appendChild(download);
 
-    historyList.appendChild(historyItem);
+	historyList.appendChild(historyItem);
+}
+
+function updateHistory() {
+	const historyContainer = document.getElementById('history-list');
+	historyContainer.innerHTML = '';
+
+	let historyLocalStorage = getAllRecords();
+	for (const historyItem of historyLocalStorage) {
+		addToHistory(historyItem.date, historyItem.preview, FILE_STORAGE_URL + historyItem.fileSuff);
+	}
 }
 
 // MARK: Onload
@@ -159,7 +206,8 @@ window.onload = () => {
 			if (data.info_msg) {
 				showTemporaryNotification(data.info_msg, 6000);
 			}
-		})
+			saveOrUpdateRecord(data.hash);
+		}, null, true);
 	});
 
 	// File loader listener
@@ -167,8 +215,6 @@ window.onload = () => {
 		document.getElementById('file-input').click();
 	});
 
-	// History adding example
-	var currentDate = new Date();
-	var sampleText = "Некоторый текст для истории.";
-	addToHistory(currentDate, sampleText, "123");
+	// History adding
+	updateHistory();
 }

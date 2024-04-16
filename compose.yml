@@ -52,6 +52,7 @@ services:
     image: summarizer-app
     environment:
       TQDM_DISABLE: $TQDM_DISABLE
+      INSIDE_DOCKER: 1
     restart: unless-stopped
     volumes:
       - ./server:/app/server

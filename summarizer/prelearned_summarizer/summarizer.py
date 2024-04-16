@@ -1,8 +1,6 @@
-import itertools
-import math
 import os
 import sys
-from typing import List, Sized, Tuple, Iterable, Set
+from typing import List, Tuple, Iterable
 
 from gensim.models import Word2Vec
 from tqdm import tqdm

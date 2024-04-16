@@ -1,9 +1,10 @@
 from typing import List
-import re
+import re, os
 
 import nltk
 
-nltk.download("punkt")
+if "INSIDE_DOCKER" not in os.environ:
+    nltk.download("punkt")
 
 
 # get lemmatize function
