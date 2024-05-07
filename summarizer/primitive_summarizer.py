@@ -49,7 +49,7 @@ def get_grade_fast(sentence: Counter, total_counter: Counter, total_words) -> fl
 #     return grade
 
 
-def summarize(text: str) -> List[Tuple[str, int]]:
+def summarize(text: str) -> List[Tuple[str, int, float]]:
     sentences = tools.split_to_sentences(text)
     counters = __get_list_of_counters(sentences)
     total_counter = Counter()
@@ -66,4 +66,4 @@ def summarize(text: str) -> List[Tuple[str, int]]:
         for i, counter in enumerate(counters)
     ]
     index_with_grade.sort(key=lambda i_grade: -i_grade[1])
-    return [(sentences[i], i) for i, _ in index_with_grade]
+    return [(sentences[i], i, grade) for i, grade in index_with_grade]

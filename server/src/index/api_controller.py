@@ -38,6 +38,19 @@ def get_text_obj(hash: str):
     if text_obj is None:
         return "Данного текста нет либо истёк срок его хранения", 404
     else:
-        return {
-            key: value for key, value in text_obj.items() if key in "preview sourceFile".split()
-        }
+        return {key: value for key, value in text_obj.items() if key in "preview sourceFile".split()}
+
+
+@index_api.route("/poll", methods=["GET"])
+def get_statistic_poll():
+    uuid = service.random.choice(
+        "b36ad9b4204e4912b14126f7da4b94b1 355c53630d374e10999a4226faf88917 0f40fcba84c34ac7b564a8a8f25b2949 ade4e766f01c40b2ace0aff0bc974007 37eb8e0344fb41e3848a3673e0fac461 4d89a8f78d7549d29e317e056893966e 5501160644f94215b206c3c3fbfabd08 4eddccadd4204128b35c38ea35a39987".split()
+    )
+    values = service.get_statistic_poll(uuid)
+    return flask.jsonify(dict(zip("text good_color perc".split(), values)))
+
+
+@index_api.route("/poll", methods=["POST"])
+def add_poll_result():
+    json: Dict[str, Any] = flask.request.json or dict()
+    return service.add_poll_obj(json)

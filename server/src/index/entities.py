@@ -1,4 +1,4 @@
-from sqlalchemy import DateTime, Column, String, func
+from sqlalchemy import DateTime, Column, Integer, String, func, Boolean, SmallInteger
 
 from ..common.base_class import Base
 
@@ -12,3 +12,11 @@ class Text(Base):
     vectFile = Column(String(32))
     primFile = Column(String(32))
     lastModDate = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class PollRes(Base):
+    __tablename__ = "polls"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    success = Column(Boolean(), nullable=False)
+    percents = Column(SmallInteger(), nullable=False)

@@ -75,7 +75,7 @@ def get_beside_sentences_window(
     return vc_sent_generator
 
 
-def __summarize(lemmas_matrix: List[List[str]]) -> List[int]:
+def __summarize(lemmas_matrix: List[List[str]]) -> List[Tuple[int, float]]:
     vectorized_sentences = [
         # make_avg_vector([get_word_vector(word) for word in sentence]) for sentence in lemmas_matrix
         make_avg_vector([get_word_vector(word) for word in sentence])
@@ -96,12 +96,10 @@ def __summarize(lemmas_matrix: List[List[str]]) -> List[int]:
         )
     ]
     index_with_grade.sort(key=lambda i_grade: -i_grade[1])
-
-    summarized_indexes = [index for index, _ in index_with_grade]
-    return summarized_indexes
+    return index_with_grade
 
 
-def summarize_extended(text: str) -> List[Tuple[str, int]]:
+def summarize_extended(text: str) -> List[Tuple[str, int, float]]:
     """Cover with additional info about summarizing
 
     Args:
@@ -117,5 +115,5 @@ def summarize_extended(text: str) -> List[Tuple[str, int]]:
         for sentence in tqdm(sentences, "Lemmatizing...", ncols=100)
     ]
 
-    summarized_indexes = __summarize(lemmas_matrix)
-    return [(sentences[i], i) for i in summarized_indexes]
+    index_with_grade = __summarize(lemmas_matrix)
+    return [(sentences[i], i, grade) for i, grade in index_with_grade]
