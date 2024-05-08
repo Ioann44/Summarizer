@@ -59,11 +59,25 @@ services:
       - ./summarizer:/app/summarizer
       - ./.env:/app/.env
       - ./volumes/logs:/app/logs/
-    ports:
-      - $PORT:3000
+    # ports:
+    #   - $PORT:3000
     depends_on:
       database:
         condition: service_healthy
       minio:
         condition: service_healthy
     command: sh -c "python -u server/app.py >> ./logs/logs.txt 2>&1"
+
+  nginx:
+    container_name: nginx
+    image: nginx
+    restart: unless-stopped
+    volumes:
+      - ${CERT_PATH}:/etc/nginx/server.crt
+      - ${KEY_PATH}:/etc/nginx/server.key
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app
