@@ -71,6 +71,7 @@ services:
   nginx:
     container_name: nginx
     image: nginx
+    restart: unless-stopped
     volumes:
       - ${CERT_PATH}:/etc/nginx/server.crt
       - ${KEY_PATH}:/etc/nginx/server.key
