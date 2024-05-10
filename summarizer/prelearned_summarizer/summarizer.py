@@ -1,6 +1,7 @@
+import math
 import os
 import sys
-from typing import List, Tuple, Iterable
+from typing import List, Optional, Tuple, Iterable
 
 from gensim.models import Word2Vec
 from tqdm import tqdm
@@ -117,3 +118,22 @@ def summarize_extended(text: str) -> List[Tuple[str, int, float]]:
 
     index_with_grade = __summarize(lemmas_matrix)
     return [(sentences[i], i, grade) for i, grade in index_with_grade]
+
+
+def get_similar_words_graded(text: str, sim_word: str, threshold: int) -> Optional[list[tuple[str, int]]]:
+    sim_word_processed = tools.lemmatize(sim_word.lower())
+    if sim_word_processed not in model.wv:
+        return None
+    sim_vect = get_word_vector(sim_word_processed)
+
+    words = tools.get_words(text)
+
+    grades_with_words_dict = dict()
+    for word in tqdm(words, desc="Making set of key words", ncols=100):
+        grade = max(
+            0, math.floor(get_cos_distance(sim_vect, get_word_vector(tools.lemmatize(word.lower()))) * 100)
+        )
+        if grade >= threshold:
+            grades_with_words_dict[word] = grade
+
+    return [(word, grade) for word, grade in grades_with_words_dict.items()]

@@ -1,4 +1,4 @@
-from typing import List
+from typing import Iterable, List, Tuple
 import re, os
 
 import nltk
@@ -25,6 +25,7 @@ def split_to_sentences(text: str) -> List[str]:
 
 
 word_regex = re.compile(r"([а-яё0-9]+)")
+word_regex_with_capits = re.compile(r"([а-яёА-ЯЁ]+)")
 
 
 def get_words_from_sentence(sentence: str) -> List[str]:
@@ -38,3 +39,9 @@ def get_lemmatized_matrix(text: str) -> List[List[str]]:
 
 def get_lemmatized_matrix_from_sentence(sentence: str) -> List[str]:
     return [lemmatize(word) for word in get_words_from_sentence(sentence)]
+
+
+def get_words(text: str) -> Iterable[str]:
+    matches = word_regex_with_capits.finditer(text)
+    # pos_word_list = [(m.start(), m.end(), m.group(1)) for m in matches]
+    return (m.group(1) for m in matches)

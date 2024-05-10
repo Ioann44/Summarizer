@@ -6,11 +6,13 @@ import '../styles/styles.css';
 const pseuso_json = require("../pseudo-env.json");
 const api_host = pseuso_json['api-host']
 
-const HomePage = () => {
+const PollPage = () => {
 	const [pollData, setPollData] = useState({ text: "Идёт отправка запроса..." });
 	// const navigate = useNavigate();
 
 	useEffect(() => {
+		document.title = "Оценка качества суммаризатора"
+
 		fetch(api_host + 'poll')
 			.then(response => response.json())
 			.then(data => setPollData(data))
@@ -51,4 +53,4 @@ const HomePage = () => {
 	);
 };
 
-export default HomePage;
+export default PollPage;
