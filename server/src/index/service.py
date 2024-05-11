@@ -128,4 +128,4 @@ def get_similar_words(text, sim_word) -> Tuple[str, Any]:
         return "Для заданного слова вектор не был найден", None
     else:
         print(f"Word {sim_word} was found in model")
-        return f"Выделены все слова, имеющие схожесть не менее {THRESHOLD_VALUE}%", res
+        return f"Выделены все слова, имеющие сходство не менее {THRESHOLD_VALUE}%", res

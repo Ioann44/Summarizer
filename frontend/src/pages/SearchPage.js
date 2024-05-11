@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 // import { useNavigate } from 'react-router-dom';
 
 import '../styles/styles.css';
+import TextWithHighlightedWords from '../components/TextHighlighted';
 const pseuso_json = require("../pseudo-env.json");
 const api_host = pseuso_json['api-host']
 
@@ -13,7 +14,8 @@ var modalWindow;
 const SearchPage = () => {
 	const [text, setText] = useState("Котята – это воплощение нежности и игривости. Их пушистая шерсть, маленькие лапки и любопытные глазки сразу растрогают сердце. Когда они родятся, они такие маленькие, что помещаются в ладони, их глазки закрыты, и они полностью зависят от матери. По мере того как котята растут, они начинают исследовать мир вокруг себя. Их игры полные бесконечной энергии и веселья, они ловко ловят игрушки и мячи, учатся охотиться и лазать по деревьям. Когда котята устают от своих приключений, они ищут уютное место для сна – это может быть ваша постель или мягкая корзина. Котята обладают уникальными характерами – некоторые из них могут быть смелыми и дерзкими, другие более робкими и застенчивыми. Однако все они нуждаются в заботе и внимании, чтобы вырасти здоровыми и счастливыми. Наблюдать за игрой котят – это настоящее удовольствие, их беззаветная любовь к вам согреет ваше сердце. Познакомьтесь с этими милыми созданиями, и вы обнаружите, как они способны принести в вашу жизнь много радости и счастья.");
 	const [keyWord, setKeyWord] = useState("Кошка");
-	const [gradeByWord, setGradeByWord] = useState(new Map());
+	const [wordWithGrade, setWordWithGrade] = useState([]);
+	const [resText, setResText] = useState("");
 	// const navigate = useNavigate();
 
 	useEffect(() => {
@@ -22,40 +24,6 @@ const SearchPage = () => {
 		notificationContainer = document.getElementById("notificationContainer");
 		resultTextArea = document.getElementById("compressed-text");
 		modalWindow = document.getElementById("modal");
-
-		// Summarize request listener
-		document.getElementsByTagName("form")[0].addEventListener("submit", event => {
-			event.preventDefault();
-
-			const [input_text, preffered_method, compression_mul] = [
-				...document.getElementsByClassName("form-input")
-			].map(element => element.value)
-
-			if (input_text.length > 1048576) {
-				showTemporaryNotification("Текст превышает максимальный размер в 1 миллион символов (2 МБ в кодировке UTF-8)", 6000);
-				return;
-			}
-
-			fetch_template(api_host + "search", true, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify({ text: text, word: keyWord })
-			}, data => {
-				resultTextArea.value = data.text;
-				resultTextArea.style.height = "0";
-				resultTextArea.style.height = resultTextArea.scrollHeight + 3 + "px";
-				if (data.info_msg) {
-					showTemporaryNotification(data.info_msg, 6000);
-				}
-			}, null, true);
-		});
-
-		// File loader listener
-		document.getElementsByClassName('file-click-area')[0].addEventListener('click', function () {
-			document.getElementById('file-input').click();
-		});
 	}, []);
 
 	/**
@@ -131,10 +99,40 @@ const SearchPage = () => {
 	function readFileContents(file) {
 		const reader = new FileReader();
 		reader.onload = function (event) {
-			const text = event.target.result;
-			document.getElementById('source_text').value = text;
+			setText(event.target.result);
 		};
 		reader.readAsText(file, 'UTF-8');
+	}
+
+	function handleSubmit(event) {
+		event.preventDefault();
+
+		const [input_text, preffered_method, compression_mul] = [
+			...document.getElementsByClassName("form-input")
+		].map(element => element.value)
+
+		if (input_text.length > 1048576) {
+			showTemporaryNotification("Текст превышает максимальный размер в 1 миллион символов (2 МБ в кодировке UTF-8)", 6000);
+			return;
+		}
+
+		fetch_template(api_host + "search", true, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({ text: text, word: keyWord })
+		}, data => {
+			setResText(text);
+			setWordWithGrade(data.words);
+			if (data.info_msg) {
+				showTemporaryNotification(data.info_msg, 6000);
+			}
+		}, null, true);
+	}
+
+	function fileClickAreaHandler() {
+		document.getElementById('file-input').click();
 	}
 
 	return (
@@ -157,14 +155,14 @@ const SearchPage = () => {
 			<input type="file" id="file-input" style={{ display: 'none' }} accept=".txt" onChange={handleFileInputChange}></input>
 
 			<div className="block-container">
-				<form>
+				<form onSubmit={event => handleSubmit(event)}>
 					<label className="form-label" htmlFor="source_text" style={{ display: 'inline' }}>Текст для поиска синонимов: </label>
-					<p className="file-click-area" style={{ display: 'inline' }}>(вы можете перетащить файл в область ниже или нажать
+					<p className="file-click-area" style={{ display: 'inline' }} onClick={fileClickAreaHandler}>(вы можете перетащить файл в область ниже или нажать
 						сюда для выбора файла)</p>
 					<textarea
 						className="form-input file-drop-area" style={{ width: '100%' }} id="source_text" rows="10"
 						maxLength="1048576" onDrop={handleFileDrop} onDragOver={(event) => event.preventDefault()}
-						value={text} onChange={e => setText(e.target.value)}>
+						value={text} onChange={e => { setText(e.target.value) }}>
 					</textarea>
 					<label className="form-label" htmlFor="source_text" style={{ marginBottom: "0px" }}>Искомое слово:</label>
 					<input type='text' className='text-area-like-input' value={keyWord} onChange={e => setKeyWord(e.target.value)}></input>
@@ -174,7 +172,7 @@ const SearchPage = () => {
 
 			<div className="block-container">
 				<p>Обработанный текст:</p>
-				<textarea id="compressed-text" readOnly></textarea>
+				<TextWithHighlightedWords text={resText} wordsToHighlight={wordWithGrade} />
 			</div>
 		</>
 	);

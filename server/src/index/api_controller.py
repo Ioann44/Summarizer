@@ -56,7 +56,7 @@ def add_poll_result():
     return service.add_poll_obj(json)
 
 
-@index_api.route("/search", methods=["GET"])
+@index_api.route("/search", methods=["POST"])
 def get_similar_words():
     json: Dict[str, Any] = flask.request.json or dict()
     source_text = json.get("text", "")
