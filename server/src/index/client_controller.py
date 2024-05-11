@@ -11,5 +11,6 @@ def get_all():
 
 
 @index.route("/poll")
+@index.route("/search")
 def get_poll():
-    return render_template("poll.html")
+    return render_template("react.html")

@@ -58,8 +58,8 @@ header {
 }
 
 #submit-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 .form-input {
@@ -239,4 +239,19 @@ p {
 .expanded {
 	max-height: 1000px;
 	transition: max-height 0.3s ease;
+}
+
+/* MARK: Others */
+
+.file-click-area:hover {
+	cursor: pointer;
+}
+
+#transition-button {
+	margin-left: auto;
+	margin-right: 5px;
+	padding: 10px 20px;
+	font-size: 16px;
+	border-radius: 8px;
+	background-color: white;
 }

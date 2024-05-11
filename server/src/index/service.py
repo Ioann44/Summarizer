@@ -2,7 +2,7 @@ import math
 import os
 import random
 import sys
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from hashlib import sha256
 from uuid import uuid4
 
@@ -12,6 +12,7 @@ sys.path.append(location + "/../../../summarizer/")
 from src.index import db_text_service, db_poll_service
 from src.common.global_utils import env
 from prelearned_summarizer.summarizer import summarize_extended as summarize_prelearned  # type: ignore
+from prelearned_summarizer.summarizer import get_similar_words_graded  # type: ignore
 from primitive_summarizer import summarize as summarize_primitive  # type: ignore
 from src.index import mn_service
 from src.index.entities import PollRes, Text
@@ -70,7 +71,7 @@ def summarize(text: str, method_is_vec: bool, compression_mul: float) -> Tuple[s
     return *result, hash
 
 
-def get_text_obj(hash) -> dict[str, Optional[str]]:
+def get_text_obj(hash) -> Dict[str, Optional[str]]:
     text_obj = db_text_service.get_one(hash)
     return {c.name: getattr(text_obj, c.name) for c in Text.__table__.columns}
 
@@ -112,6 +113,18 @@ def get_statistic_poll(uuid: str) -> Tuple[str, str, int]:
     return " ".join(sentences), good_color, supr_in_perc
 
 
-def add_poll_obj(poll_dict) -> dict[str, Optional[str]]:
+def add_poll_obj(poll_dict) -> Dict[str, Optional[str]]:
     poll_obj = db_poll_service.add(poll_dict)
     return {c.name: getattr(poll_obj, c.name) for c in PollRes.__table__.columns}
+
+
+def get_similar_words(text, sim_word, threshold) -> Tuple[str, Any]:
+    print(f"Search for word {sim_word}")
+    res = get_similar_words_graded(text, sim_word, threshold)
+
+    if res is None:
+        print(f"Word {sim_word} not found in model")
+        return "Для заданного слова вектор не был найден", None
+    else:
+        print(f"Word {sim_word} was found in model")
+        return f"Выделены все слова, имеющие сходство не менее {threshold}%", res
