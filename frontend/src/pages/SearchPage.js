@@ -1,11 +1,11 @@
 // SearchPage.js
 import React, { useState, useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import '../styles/styles.css';
 import TextWithHighlightedWords from '../components/TextHighlighted';
-const pseuso_json = require("../pseudo-env.json");
-const api_host = pseuso_json['api-host']
+const pseuso_env = require("../pseudo-env.json");
+const api_host = pseuso_env['api-host']
 
 var notificationContainer;
 var resultTextArea;
@@ -16,7 +16,9 @@ const SearchPage = () => {
 	const [keyWord, setKeyWord] = useState("Кошка");
 	const [wordWithGrade, setWordWithGrade] = useState([]);
 	const [resText, setResText] = useState("");
-	// const navigate = useNavigate();
+	const [thresholdLevel, setThresholdLevel] = useState(50);
+
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		document.title = "Поиск синонимов"
@@ -121,7 +123,7 @@ const SearchPage = () => {
 			headers: {
 				"Content-Type": "application/json"
 			},
-			body: JSON.stringify({ text: text, word: keyWord })
+			body: JSON.stringify({ text: text, word: keyWord, threshold: thresholdLevel })
 		}, data => {
 			setResText(text);
 			setWordWithGrade(data.words);
@@ -142,6 +144,7 @@ const SearchPage = () => {
 			<header>
 				<h1>Поиск синонимов</h1>
 				<button id="ref-button" onClick={showModal}>?</button>
+				<button id="transition-button" onClick={() => window.location.assign(pseuso_env['client-host'])}>К суммаризатору</button>
 			</header>
 
 			<div id="modal" style={{ display: 'none' }} onClick={() => (document.getElementById('modal').style.display = 'none')}>
@@ -164,15 +167,30 @@ const SearchPage = () => {
 						maxLength="1048576" onDrop={handleFileDrop} onDragOver={(event) => event.preventDefault()}
 						value={text} onChange={e => { setText(e.target.value) }}>
 					</textarea>
-					<label className="form-label" htmlFor="source_text" style={{ marginBottom: "0px" }}>Искомое слово:</label>
-					<input type='text' className='text-area-like-input' value={keyWord} onChange={e => setKeyWord(e.target.value)}></input>
-					<button id="submit-button" type="submit">Отправить</button>
+					<div className="input-inliner">
+						<div>
+							<label className="form-label" htmlFor="source_text" style={{ marginBottom: "0px" }}>Искомое слово:</label>
+							<input type='text' className='text-area-like-input' value={keyWord} onChange={e => setKeyWord(e.target.value)} />
+						</div>
+						<div className="full-range-container">
+							<div className="range-label-container">
+								<label className="form-label" htmlFor="range">Минимальный процент сходства:</label>
+								<p id="range-value">{thresholdLevel}</p>
+							</div>
+							<div className="range-container">
+								<p>1</p>
+								<input type="range" className="form-input" id="range" min="0" max="100" step="1" value={thresholdLevel} onChange={event => setThresholdLevel(event.target.value)} />
+								<p>100</p>
+							</div>
+						</div>
+						<button id="submit-button" type="submit">Отправить</button>
+					</div>
 				</form>
 			</div>
 
 			<div className="block-container">
 				<p>Обработанный текст:</p>
-				<TextWithHighlightedWords text={resText} wordsToHighlight={wordWithGrade} />
+				<TextWithHighlightedWords text={resText} wordsToHighlight={wordWithGrade} threshold={thresholdLevel} />
 			</div>
 		</>
 	);

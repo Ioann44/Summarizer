@@ -118,14 +118,13 @@ def add_poll_obj(poll_dict) -> Dict[str, Optional[str]]:
     return {c.name: getattr(poll_obj, c.name) for c in PollRes.__table__.columns}
 
 
-def get_similar_words(text, sim_word) -> Tuple[str, Any]:
-    THRESHOLD_VALUE = 50
+def get_similar_words(text, sim_word, threshold) -> Tuple[str, Any]:
     print(f"Search for word {sim_word}")
-    res = get_similar_words_graded(text, sim_word, THRESHOLD_VALUE)
+    res = get_similar_words_graded(text, sim_word, threshold)
 
     if res is None:
         print(f"Word {sim_word} not found in model")
         return "Для заданного слова вектор не был найден", None
     else:
         print(f"Word {sim_word} was found in model")
-        return f"Выделены все слова, имеющие сходство не менее {THRESHOLD_VALUE}%", res
+        return f"Выделены все слова, имеющие сходство не менее {threshold}%", res

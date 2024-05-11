@@ -2,14 +2,14 @@ import React from 'react';
 import ReactDomServer from 'react-dom/server';
 import "../styles/styles.css"
 
-const TextWithHighlightedWords = ({ text, wordsToHighlight }) => {
+const TextWithHighlightedWords = ({ text, wordsToHighlight, threshold }) => {
 	let gradeByWord = new Map(wordsToHighlight);
 
 	function doSpan(word) {
 		const brightness = gradeByWord.get(word);
 		if (brightness) {
 			return ReactDomServer.renderToString(
-				<span key={word} className="highlighted-word" title={`${brightness}%`} style={{ backgroundColor: `rgba(0, 255, 0, ${brightness / 50 - 1})` }}>
+				<span key={word} className="highlighted-word" title={`${brightness}%`} style={{ backgroundColor: `rgba(0, 255, 0, ${(brightness - threshold) / (100 - threshold)})` }}>
 					{word}
 				</span>
 			);

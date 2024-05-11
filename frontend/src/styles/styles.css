@@ -231,3 +231,12 @@ p {
 .file-click-area:hover {
 	cursor: pointer;
 }
+
+#transition-button {
+    margin-left: auto;
+    margin-right: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    background-color: white;
+}

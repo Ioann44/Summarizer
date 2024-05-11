@@ -61,13 +61,14 @@ def get_similar_words():
     json: Dict[str, Any] = flask.request.json or dict()
     source_text = json.get("text", "")
     key_word = json.get("word", "")
+    threshold = int(json.get("threshold", 50))
 
     if not source_text or source_text.isspace():
         return "Текст для поиска должен быть непустым", 422
     if not key_word or key_word.isspace():
         return "Слово для поиска синонимов не должно быть пустым", 422
 
-    info_msg, res = service.get_similar_words(source_text, key_word)
+    info_msg, res = service.get_similar_words(source_text, key_word, threshold)
 
     if res is None:
         return info_msg, 422

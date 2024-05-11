@@ -1,3 +1,4 @@
 {
-	"api-host": "http://localhost:3000/api/"
+	"api-host": "http://localhost:3000/api/",
+	"client-host": "http://localhost:3000/"
 }
