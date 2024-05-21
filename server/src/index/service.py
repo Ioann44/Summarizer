@@ -94,8 +94,8 @@ def get_result(uuid: str, k: float) -> Tuple[str, str]:
 
 def get_statistic_poll(uuid: str) -> Tuple[str, str, int]:
     precomp_obj: List[Tuple[str, int, float]] = mn_service.load_pickle(uuid)
-    good_i_lst = [i for _, i, _ in precomp_obj[: math.ceil(len(precomp_obj) * 0.1)]]
-    bad_i_lst = [i for _, i, _ in precomp_obj[math.floor(len(precomp_obj) * 0.9) :]]
+    good_i_lst = [i for _, i, _ in precomp_obj[: math.ceil(len(precomp_obj) * 0.2)]]
+    bad_i_lst = [i for _, i, _ in precomp_obj[math.floor(len(precomp_obj) * 0.8) :]]
     good_i = random.choice(good_i_lst)
     bad_i = random.choice(bad_i_lst)
     precomp_obj.sort(key=lambda x: x[1])
