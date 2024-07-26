@@ -13,6 +13,7 @@ header {
 	justify-content: flex-start;
 	align-items: center;
 	margin-left: 5px;
+	flex-wrap: wrap-reverse;
 }
 
 #ref-button {

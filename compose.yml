@@ -34,11 +34,18 @@ services:
       MINIO_ROOT_USER: user
       MINIO_ROOT_PASSWORD: $MINIO_PASSWORD
     restart: unless-stopped
-    ports:
-      - 127.0.0.1:9000:9000
-      - 127.0.0.1:9001:9001
+    # ports:
+    #   - 127.0.0.1:9000:9000
+    #   - 127.0.0.1:9001:9001
+    # ports:
+    #   - 9000:9000
+    #   - 9001:9001
     volumes:
       - ./volumes/minio:/data
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     healthcheck:
       test: [ "CMD", "mc", "ready", "local" ]
       interval: 10s
@@ -76,8 +83,17 @@ services:
       - ${CERT_PATH}:/etc/nginx/server.crt
       - ${KEY_PATH}:/etc/nginx/server.key
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - /home/projects/Mosaic/react:/var/www/static_projects/mosaic
     ports:
       - "80:80"
       - "443:443"
+      # - "9000:9000"
+      # - "9001:9001"
+    extra_hosts:
+      - host.docker.internal:host-gateway
     depends_on:
       - app
+    deploy:
+      resources:
+        limits:
+          memory: 512m

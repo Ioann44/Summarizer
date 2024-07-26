@@ -44,7 +44,16 @@ def get_text_obj(hash: str):
 @index_api.route("/poll", methods=["GET"])
 def get_statistic_poll():
     uuid = service.random.choice(
-        "b36ad9b4204e4912b14126f7da4b94b1 355c53630d374e10999a4226faf88917 0f40fcba84c34ac7b564a8a8f25b2949 ade4e766f01c40b2ace0aff0bc974007 37eb8e0344fb41e3848a3673e0fac461 4d89a8f78d7549d29e317e056893966e 5501160644f94215b206c3c3fbfabd08 4eddccadd4204128b35c38ea35a39987".split()
+        [
+            "e268595f3efe48dda001d59d7bd05e0a",
+            "1dd8f67b072a458593c5b308fb1a9e84",
+            "d56748d7d06c40b094af0b216dfcb1c9",
+            "0987722dc87d471fb048ab8ee425b4d2",
+            "3eb13374277145169d47553db3f74a9f",
+            "e2b6657e232549a19ab5028aa4c2238d",
+            "d4638dcbe5e243f787495702aba3b88d",
+            "b114ca6021674cc4b8a017c596739417",
+        ]
     )
     values = service.get_statistic_poll(uuid)
     return flask.jsonify(dict(zip("text good_color perc".split(), values)))
