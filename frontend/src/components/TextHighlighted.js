@@ -18,7 +18,7 @@ const TextWithHighlightedWords = ({ text, wordsToHighlight, threshold }) => {
 		}
 	}
 
-	let res = text.replace(/([а-яёА-ЯЁ]+)/, doSpan);
+	// let res = text.replace(/([а-яёА-ЯЁ]+)/, doSpan);
 	return (
 		<div className='text-area-like' id="compressed-text" readOnly
 			dangerouslySetInnerHTML={{ __html: text.replace(/([а-яёА-ЯЁ]+)/g, doSpan) }}

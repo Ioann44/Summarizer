@@ -1,6 +1,5 @@
 // SearchPage.js
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
 
 import '../styles/styles.css';
 import TextWithHighlightedWords from '../components/TextHighlighted';
@@ -8,23 +7,22 @@ const pseuso_env = require("../pseudo-env.json");
 const api_host = pseuso_env['api-host']
 
 var notificationContainer;
-var resultTextArea;
 var modalWindow;
 
 const SearchPage = () => {
 	const [text, setText] = useState("Котята – это воплощение нежности и игривости. Их пушистая шерсть, маленькие лапки и любопытные глазки сразу растрогают сердце. Когда они родятся, они такие маленькие, что помещаются в ладони, их глазки закрыты, и они полностью зависят от матери. По мере того как котята растут, они начинают исследовать мир вокруг себя. Их игры полные бесконечной энергии и веселья, они ловко ловят игрушки и мячи, учатся охотиться и лазать по деревьям. Когда котята устают от своих приключений, они ищут уютное место для сна – это может быть ваша постель или мягкая корзина. Котята обладают уникальными характерами – некоторые из них могут быть смелыми и дерзкими, другие более робкими и застенчивыми. Однако все они нуждаются в заботе и внимании, чтобы вырасти здоровыми и счастливыми. Наблюдать за игрой котят – это настоящее удовольствие, их беззаветная любовь к вам согреет ваше сердце. Познакомьтесь с этими милыми созданиями, и вы обнаружите, как они способны принести в вашу жизнь много радости и счастья.");
 	const [keyWord, setKeyWord] = useState("Кошка");
-	const [wordWithGrade, setWordWithGrade] = useState([]);
+	const [wordsWithGrade, setWordsWithGrade] = useState([]);
 	const [resText, setResText] = useState("");
 	const [thresholdLevel, setThresholdLevel] = useState(50);
-
-	const navigate = useNavigate();
+	const fixedThresholdLevel = useRef(thresholdLevel);
+	// const [fixedThresholdLevel, setFixedThresholdLevel] = useState(50);
+	const [thresholdLevelToShow, setThresholdLevelToShow] = useState(50);
 
 	useEffect(() => {
 		document.title = "Поиск синонимов"
 
 		notificationContainer = document.getElementById("notificationContainer");
-		resultTextArea = document.getElementById("compressed-text");
 		modalWindow = document.getElementById("modal");
 	}, []);
 
@@ -109,24 +107,26 @@ const SearchPage = () => {
 	function handleSubmit(event) {
 		event.preventDefault();
 
-		const [input_text, preffered_method, compression_mul] = [
-			...document.getElementsByClassName("form-input")
-		].map(element => element.value)
+		const input_text = document.getElementsByClassName("form-input").item(0).value;
 
 		if (input_text.length > 1048576) {
 			showTemporaryNotification("Текст превышает максимальный размер в 1 миллион символов (2 МБ в кодировке UTF-8)", 6000);
 			return;
 		}
 
+		// setFixedThresholdLevel(thresholdLevel);
+		fixedThresholdLevel.current = thresholdLevel;
+
 		fetch_template(api_host + "search", true, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json"
 			},
-			body: JSON.stringify({ text: text, word: keyWord, threshold: thresholdLevel })
+			body: JSON.stringify({ text: text, word: keyWord, threshold: fixedThresholdLevel.current })
 		}, data => {
 			setResText(text);
-			setWordWithGrade(data.words);
+			setWordsWithGrade(data.words);
+			setThresholdLevelToShow(fixedThresholdLevel.current);
 			if (data.info_msg) {
 				showTemporaryNotification(data.info_msg, 6000);
 			}
@@ -190,7 +190,7 @@ const SearchPage = () => {
 
 			<div className="block-container">
 				<p>Обработанный текст:</p>
-				<TextWithHighlightedWords text={resText} wordsToHighlight={wordWithGrade} threshold={thresholdLevel} />
+				<TextWithHighlightedWords text={resText} wordsToHighlight={wordsWithGrade} threshold={thresholdLevelToShow} />
 			</div>
 		</>
 	);
