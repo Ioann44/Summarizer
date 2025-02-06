@@ -1,4 +1,4 @@
-const FILE_STORAGE_URL = "https://ioann44.ru/files/";
+const FILE_STORAGE_URL = "https://sum.ioann44.ru/files/";
 
 /**
  * Fetch cover for suppressing code amount
